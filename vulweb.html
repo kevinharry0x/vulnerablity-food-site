@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basil & Bolt — Training Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<!--
+  DEV NOTE (remove before launch):
+  test creds — user: sam / pizza123
+  admin panel is at the "Staff Portal" link in the footer, no real access control yet
+  staff discount code STAFF-100OFF still wired up client-side, ship w/o it next sprint
+-->
+<style>
+  :root{
+    --bg:#12261C; --bg-panel:#1A3327; --bg-card:#1F3C2D;
+    --text:#F3EEDF; --muted:#AFC3B4;
+    --gold:#E8A33D; --gold-bright:#F5C067;
+    --chili:#D8452D; --chili-bright:#F16A4C;
+    --line: rgba(232,163,61,0.18);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'Work Sans',sans-serif; line-height:1.6;
+  }
+  h1,h2,h3{ font-family:'Fraunces',serif; font-weight:700; margin:0; }
+  .mono{ font-family:'IBM Plex Mono',monospace; }
+  a{ color:var(--gold-bright); }
+  ::selection{ background:var(--chili); color:#12261C; }
+
+  /* ===== Training banner ===== */
+  .train-banner{
+    background: var(--chili); color:#fff; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.03em;
+    padding:9px 16px;
+  }
+
+  /* ===== Header ===== */
+  header.site{
+    display:flex; justify-content:space-between; align-items:center;
+    padding: 22px 40px; border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; }
+  .brand h1{ font-size:26px; color:var(--gold-bright); }
+  .brand span{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:0.15em; }
+  nav.site a{ margin-left:26px; text-decoration:none; color:var(--text); font-size:14.5px; font-weight:500; }
+  nav.site a:hover{ color:var(--gold-bright); }
+
+  /* ===== Hero ===== */
+  .hero{ padding:70px 40px 50px; display:grid; grid-template-columns:1.1fr 0.9fr; gap:40px; align-items:center; border-bottom:1px solid var(--line); }
+  @media (max-width:880px){ .hero{ grid-template-columns:1fr; } }
+  .hero h2{ font-size:clamp(38px,6vw,64px); line-height:1.02; color:var(--text); }
+  .hero h2 em{ color:var(--gold-bright); font-style:normal; }
+  .hero p{ color:var(--muted); max-width:48ch; font-size:16px; margin:18px 0 26px; }
+  .btn{
+    display:inline-block; background:var(--gold); color:#12261C; font-weight:600;
+    padding:12px 24px; border:none; border-radius:3px; cursor:pointer; font-size:14.5px;
+    text-decoration:none; font-family:'Work Sans',sans-serif;
+  }
+  .btn:hover{ background:var(--gold-bright); }
+  .btn.ghost{ background:transparent; border:1px solid var(--gold); color:var(--gold-bright); }
+  .btn.chili{ background:var(--chili); color:#fff; }
+
+  /* receipt ticket preview in hero */
+  .ticket{
+    background:#F3EEDF; color:#1a1a1a; font-family:'IBM Plex Mono',monospace;
+    padding:20px 18px; font-size:12.5px; box-shadow:0 12px 30px rgba(0,0,0,0.35);
+    transform: rotate(1.5deg);
+    clip-path: polygon(0% 0%,100% 0%,100% 97%,95% 100%,90% 97%,85% 100%,80% 97%,75% 100%,70% 97%,65% 100%,60% 97%,55% 100%,50% 97%,45% 100%,40% 97%,35% 100%,30% 97%,25% 100%,20% 97%,15% 100%,10% 97%,5% 100%,0% 97%);
+  }
+  .ticket .line{ display:flex; justify-content:space-between; border-bottom:1px dashed #999; padding:4px 0; }
+  .ticket .tot{ font-weight:700; margin-top:8px; }
+
+  /* ===== Sections ===== */
+  section{ padding:56px 40px; border-bottom:1px solid var(--line); max-width:1200px; margin:0 auto; }
+  section > .head{ margin-bottom:28px; }
+  section > .head h3{ font-size:28px; color:var(--gold-bright); }
+  section > .head p{ color:var(--muted); font-size:14.5px; max-width:60ch; margin-top:8px; }
+
+  /* Menu */
+  .menu-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:18px; }
+  .dish{ background:var(--bg-card); border:1px solid var(--line); padding:18px; border-radius:4px; }
+  .dish h4{ font-family:'Fraunces',serif; font-size:18px; margin:0 0 6px; }
+  .dish p{ color:var(--muted); font-size:13px; margin:0 0 14px; min-height:36px; }
+  .dish .row{ display:flex; justify-content:space-between; align-items:center; }
+  .price-chip{
+    font-family:'IBM Plex Mono',monospace; border:1px dashed var(--gold); color:var(--gold-bright);
+    padding:3px 9px; border-radius:20px; font-size:13px;
+  }
+  .qty-add{ display:flex; gap:8px; align-items:center; margin-top:12px; }
+  .qty-add input{ width:52px; background:var(--bg-panel); border:1px solid var(--line); color:var(--text); padding:6px; border-radius:3px; font-family:'IBM Plex Mono',monospace; }
+  .qty-add button{ flex:1; background:var(--gold); border:none; padding:8px; border-radius:3px; font-weight:600; cursor:pointer; }
+
+  /* Cart */
+  .cart-box{ background:var(--bg-panel); border:1px solid var(--line); padding:22px; border-radius:4px; max-width:480px; }
+  .cart-line{ display:flex; justify-content:space-between; font-size:14px; padding:6px 0; border-bottom:1px dashed var(--line); }
+  .cart-line input{ width:48px; background:var(--bg-card); border:1px solid var(--line); color:var(--text); text-align:center; border-radius:3px; }
+  .cart-total{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:17px; margin-top:14px; color:var(--gold-bright); }
+  .promo-row{ display:flex; gap:8px; margin:16px 0; }
+  .promo-row input{ flex:1; background:var(--bg-card); border:1px solid var(--line); color:var(--text); padding:9px; border-radius:3px; }
+  #promo-msg{ font-size:12.5px; color:var(--muted); font-family:'IBM Plex Mono',monospace; min-height:16px; }
+
+  /* Track order */
+  .track-box{ display:flex; gap:10px; max-width:420px; margin-bottom:18px; }
+  .track-box input{ flex:1; background:var(--bg-panel); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:3px; font-family:'IBM Plex Mono',monospace; }
+  .order-result{ background:var(--bg-card); border:1px solid var(--line); padding:18px; border-radius:4px; max-width:480px; font-size:14px; display:none; }
+  .order-result.show{ display:block; }
+  .order-result .k{ color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; }
+
+  /* Login */
+  .login-box{ background:var(--bg-panel); border:1px solid var(--line); padding:22px; border-radius:4px; max-width:340px; }
+  .login-box input{ width:100%; margin-bottom:10px; padding:9px; background:var(--bg-card); border:1px solid var(--line); color:var(--text); border-radius:3px; }
+  #login-msg{ font-size:13px; margin-top:8px; font-family:'IBM Plex Mono',monospace; }
+
+  /* Search */
+  .search-row{ display:flex; gap:10px; max-width:460px; margin-bottom:16px; }
+  .search-row input{ flex:1; background:var(--bg-panel); border:1px solid var(--line); color:var(--text); padding:10px; border-radius:3px; }
+  #search-results{ display:flex; flex-direction:column; gap:8px; max-width:520px; }
+  #search-results .item{ background:var(--bg-card); border:1px solid var(--line); padding:10px 14px; border-radius:3px; font-size:14px; display:flex; justify-content:space-between; }
+  #search-results .item.hidden-item{ border-color:var(--chili); }
+  #search-results .item.hidden-item .tag{ color:var(--chili-bright); font-family:'IBM Plex Mono',monospace; font-size:10.5px; }
+
+  /* Reviews */
+  .review-form textarea{ width:100%; max-width:560px; background:var(--bg-panel); border:1px solid var(--line); color:var(--text); padding:12px; border-radius:3px; font-family:'Work Sans',sans-serif; min-height:70px; }
+  #review-list{ margin-top:20px; display:flex; flex-direction:column; gap:12px; max-width:560px; }
+  .review{ background:var(--bg-card); border:1px solid var(--line); padding:14px 16px; border-radius:4px; font-size:14px; }
+  .review .who{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--gold-bright); margin-bottom:4px; }
+
+  /* Admin */
+  .admin-panel{ background:#2A1210; border:1px solid var(--chili); padding:22px; border-radius:4px; max-width:640px; }
+  .admin-panel h4{ color:var(--chili-bright); font-family:'IBM Plex Mono',monospace; letter-spacing:0.05em; margin-bottom:14px; }
+  table.admin-tbl{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.admin-tbl th, table.admin-tbl td{ border-bottom:1px solid rgba(255,255,255,0.1); padding:8px 6px; text-align:left; }
+  table.admin-tbl th{ color:var(--muted); font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; }
+
+  /* Training console: receipt-rail */
+  .console{ background:var(--bg-panel); border:1px solid var(--line); padding:24px; border-radius:4px; }
+  .rail{ display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; margin-top:18px;}
+  .kt{
+    background:#F3EEDF; color:#1a1a1a; font-family:'IBM Plex Mono',monospace; font-size:12.5px;
+    padding:16px 14px; border-radius:2px; position:relative; cursor:pointer;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  }
+  .kt::before{ content:""; position:absolute; top:-6px; left:0; right:0; height:12px;
+    background: radial-gradient(circle at 8px 0, transparent 6px, #F3EEDF 6px) repeat-x; background-size:16px 12px; }
+  .kt .id{ color:var(--chili); font-weight:700; }
+  .kt .name{ font-weight:700; margin:6px 0 4px; }
+  .kt .status{ font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.05em; }
+  .kt.found{ opacity:0.55; }
+  .kt.found .status{ color:#1a7a3d; }
+  .kt .hint{ display:none; margin-top:8px; padding-top:8px; border-top:1px dashed #999; font-size:11.5px; color:#333; }
+  .kt.expanded .hint{ display:block; }
+  .progress-strip{ margin-top:16px; font-family:'IBM Plex Mono',monospace; color:var(--gold-bright); font-size:13px; }
+
+  footer{ padding:36px 40px 60px; color:var(--muted); font-size:12.5px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  footer a{ color:var(--muted); }
+  footer a.staff{ font-family:'IBM Plex Mono',monospace; font-size:11px; opacity:0.55; }
+
+  @media (max-width:700px){ header.site, .hero, section, footer{ padding-left:20px; padding-right:20px; } }
+</style>
+</head>
+<body>
+
+<div class="train-banner mono">⚠ TRAINING LAB — it is full of vuls do the bug bounty</div>
+
+<header class="site">
+  <div class="brand"><h1>Basil &amp; Bolt</h1><span class="mono">EST. FICTIONAL, 2026</span></div>
+  <nav class="site">
+    <a href="#menu">Menu</a>
+    <a href="#track">Track Order</a>
+    <a href="#reviews">Reviews</a>
+    <a href="#login">Login</a>
+    <a href="#console">Training Console</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div>
+    <h2>Fast, fresh, <em>and full of holes.</em></h2>
+    <p>A working food-ordering site built the way a rushed team actually ships one — with the same access-control gaps, trust-the-client logic, and forgotten pages real attack-surface work is meant to catch. Find them here first.</p>
+    <a href="#menu" class="btn">Browse the Menu</a>
+    <a href="#console" class="btn ghost" style="margin-left:10px;">Open Training Console</a>
+  </div>
+  <div class="ticket">
+    <div style="text-align:center; font-weight:700; margin-bottom:8px;">BASIL &amp; BOLT — ORDER #1042</div>
+    <div class="line"><span>Wood-Fired Margherita</span><span>$12.50</span></div>
+    <div class="line"><span>Garlic Knots x2</span><span>$6.00</span></div>
+    <div class="line"><span>Delivery</span><span>$3.00</span></div>
+    <div class="tot line"><span>TOTAL</span><span>$21.50</span></div>
+    <div style="margin-top:10px; font-size:11px; color:#666;">status: out for delivery — try tracking a different order # below ↓</div>
+  </div>
+</section>
+
+<section id="menu">
+  <div class="head">
+    <h3>Menu</h3>
+    <p>Every price chip below is set with a plain <span class="mono">data-price</span> attribute the page trusts completely. Nothing stops it being changed before checkout.</p>
+  </div>
+  <div class="menu-grid" id="menu-grid">
+    <div class="dish" data-price="12.50">
+      <h4>Wood-Fired Margherita</h4>
+      <p>San Marzano tomato, fior di latte, basil.</p>
+      <div class="row"><span class="price-chip">$12.50</span></div>
+      <div class="qty-add"><input type="number" value="1" min="1" class="qty"><button onclick="addToCart(this)">Add to cart</button></div>
+    </div>
+    <div class="dish" data-price="9.00">
+      <h4>Garlic Knots (6)</h4>
+      <p>Brushed with roasted garlic butter, herbs.</p>
+      <div class="row"><span class="price-chip">$9.00</span></div>
+      <div class="qty-add"><input type="number" value="1" min="1" class="qty"><button onclick="addToCart(this)">Add to cart</button></div>
+    </div>
+    <div class="dish" data-price="14.75">
+      <h4>Bolt Bowl</h4>
+      <p>Grilled chicken, chili oil, crispy rice.</p>
+      <div class="row"><span class="price-chip">$14.75</span></div>
+      <div class="qty-add"><input type="number" value="1" min="1" class="qty"><button onclick="addToCart(this)">Add to cart</button></div>
+    </div>
+    <div class="dish" data-price="6.50">
+      <h4>Basil Lemonade</h4>
+      <p>Fresh basil syrup, sparkling water.</p>
+      <div class="row"><span class="price-chip">$6.50</span></div>
+      <div class="qty-add"><input type="number" value="1" min="1" class="qty"><button onclick="addToCart(this)">Add to cart</button></div>
+    </div>
+  </div>
+
+  <div class="head" style="margin-top:44px;">
+    <h3 style="font-size:20px;">Your Cart</h3>
+  </div>
+  <div class="cart-box">
+    <div id="cart-lines"><p class="mono" style="color:var(--muted); font-size:13px;">Cart is empty.</p></div>
+    <div class="promo-row">
+      <input id="promo-input" placeholder="Promo code">
+      <button class="btn" onclick="applyPromo()">Apply</button>
+    </div>
+    <div id="promo-msg" class="mono"></div>
+    <div class="cart-total"><span>Total</span><span id="cart-total">$0.00</span></div>
+  </div>
+</section>
+
+<section id="track">
+  <div class="head">
+    <h3>Track Your Order</h3>
+    <p>No login required — just an order number. Real order numbers here run roughly #1040–#1044.</p>
+  </div>
+  <div class="track-box">
+    <input id="track-input" class="mono" placeholder="Order #, e.g. 1042">
+    <button class="btn" onclick="trackOrder()">Track</button>
+  </div>
+  <div id="order-result" class="order-result"></div>
+</section>
+
+<section id="search">
+  <div class="head">
+    <h3>Search the Menu</h3>
+    <p>An "advanced" search box wired straight into the menu filter, no input handling to speak of.</p>
+  </div>
+  <div class="search-row">
+    <input id="search-input" placeholder="Search dishes...">
+    <button class="btn" onclick="runSearch()">Search</button>
+  </div>
+  <div id="search-results"></div>
+</section>
+
+<section id="login">
+  <div class="head">
+    <h3>Login</h3>
+    <p>Existing customer accounts only. New here? There's no signup flow in this build yet.</p>
+  </div>
+  <div class="login-box">
+    <input id="login-user" placeholder="Username">
+    <input id="login-pass" type="password" placeholder="Password">
+    <button class="btn" onclick="doLogin()" style="width:100%;">Log in</button>
+    <div id="login-msg"></div>
+  </div>
+</section>
+
+<section id="reviews">
+  <div class="head">
+    <h3>Reviews</h3>
+    <p>Reviews render exactly what's typed, formatting included — nothing is escaped on the way out.</p>
+  </div>
+  <div class="review-form">
+    <textarea id="review-input" placeholder="How was your order?"></textarea>
+    <button class="btn" style="margin-top:10px;" onclick="postReview()">Post review</button>
+  </div>
+  <div id="review-list"></div>
+</section>
+
+<section id="admin" style="display:none;">
+  <div class="head"><h3>Staff Portal</h3><p>Order management for Basil &amp; Bolt staff.</p></div>
+  <div class="admin-panel">
+    <h4 class="mono">⚠ NO SESSION CHECK RAN TO REACH THIS PAGE</h4>
+    <table class="admin-tbl">
+      <tr><th>Order #</th><th>Customer</th><th>Phone</th><th>Card</th><th>Total</th></tr>
+      <tr><td>1040</td><td>Priya N.</td><td>••• 4471</td><td>•••• 8823</td><td>$18.25</td></tr>
+      <tr><td>1041</td><td>Marcus T.</td><td>••• 9012</td><td>•••• 4410</td><td>$27.00</td></tr>
+      <tr><td>1042</td><td>Dana K.</td><td>••• 5589</td><td>•••• 7734</td><td>$21.50</td></tr>
+      <tr><td>1043</td><td>Wei L.</td><td>••• 2201</td><td>•••• 9950</td><td>$33.90</td></tr>
+      <tr><td>1044</td><td>Aiko S.</td><td>••• 6690</td><td>•••• 1123</td><td>$15.10</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="console">
+  <div class="head">
+    <h3>Training Console</h3>
+    <p>Seven bugs are live on this page. Click a ticket once you've found the issue to reveal the kitchen notes and mark it done.</p>
+  </div>
+  <div class="console">
+    <div class="rail" id="rail">
+      <div class="kt" data-cat="price" onclick="toggleTicket(this)">
+        <div class="id">#001</div>
+        <div class="name">Client-Side Price Trust</div>
+        <div class="status">unsolved</div>
+        <div class="hint">The price shown for every dish lives in a <span class="mono">data-price</span> attribute the browser fully controls. Edit it in devtools before adding to cart — the total follows it. Category: Security Misconfiguration / trusting client input.</div>
+      </div>
+      <div class="kt" data-cat="qty" onclick="toggleTicket(this)">
+        <div class="id">#002</div>
+        <div class="name">Negative Quantity Logic Flaw</div>
+        <div class="status">unsolved</div>
+        <div class="hint">The quantity field in your cart accepts negative numbers, which subtract from the total instead of being rejected. Category: broken business logic / missing input validation.</div>
+      </div>
+      <div class="kt" data-cat="secret" onclick="toggleTicket(this)">
+        <div class="id">#003</div>
+        <div class="name">Hardcoded Secret in Client Code</div>
+        <div class="status">unsolved</div>
+        <div class="hint">View the page source — a staff-only promo code is sitting in plain JavaScript, fully usable by anyone who reads it. Category: security misconfiguration / secrets shipped to the client.</div>
+      </div>
+      <div class="kt" data-cat="idor" onclick="toggleTicket(this)">
+        <div class="id">#004</div>
+        <div class="name">Order Tracking IDOR</div>
+        <div class="status">unsolved</div>
+        <div class="hint">Tracking doesn't check who you are — only the order number. Change it and you're reading someone else's name, phone, and address. Category: IDOR / Broken Object-Level Authorization.</div>
+      </div>
+      <div class="kt" data-cat="admin" onclick="toggleTicket(this)">
+        <div class="id">#005</div>
+        <div class="name">Unprotected Staff Portal</div>
+        <div class="status">unsolved</div>
+        <div class="hint">The footer link to the staff portal opens straight to full order and payment data — logging in changes nothing about whether you can reach it. Category: Broken Access Control.</div>
+      </div>
+      <div class="kt" data-cat="xss" onclick="toggleTicket(this)">
+        <div class="id">#006</div>
+        <div class="name">Unsanitized Review Rendering</div>
+        <div class="status">unsolved</div>
+        <div class="hint">Reviews are inserted straight into the page's HTML. Try posting a review containing an image tag with a broken source and an onerror handler. Category: Cross-Site Scripting (XSS).</div>
+      </div>
+      <div class="kt" data-cat="search" onclick="toggleTicket(this)">
+        <div class="id">#007</div>
+        <div class="name">Filter Bypass on Search</div>
+        <div class="status">unsolved</div>
+        <div class="hint">One "86'd" item is filtered out of normal results. A classic tautology-style search string flips the filter's logic and surfaces it anyway. Category: injection-style filter bypass (conceptual, not real SQL here).</div>
+      </div>
+    </div>
+    <div class="progress-strip mono" id="progress-strip">0 / 7 bugs found</div>
+  </div>
+</section>
+
+<footer>
+  <span>Basil &amp; Bolt Training Lab — practice target only, no real orders or payments.</span>
+  <a class="staff" href="#" onclick="revealAdmin(); return false;">staff portal ›</a>
+</footer>
+
+<script>
+  /* ---------- in-memory data (no storage APIs) ---------- */
+  const cart = []; // {name, price, qty}
+  const orders = {
+    1040:{name:"Priya N.", phone:"90212 44471", address:"14 Anna Nagar 2nd St", items:"Bolt Bowl, Lemonade", total:18.25},
+    1041:{name:"Marcus T.", phone:"98765 09012", address:"27 Velachery Main Rd", items:"2x Margherita", total:27.00},
+    1042:{name:"Dana K.", phone:"90000 05589", address:"9 T Nagar Cross St", items:"Margherita, Garlic Knots x2", total:21.50},
+    1043:{name:"Wei L.", phone:"87654 22201", address:"3 OMR Service Rd", items:"Bolt Bowl x2, Knots", total:33.90},
+    1044:{name:"Aiko S.", phone:"91234 66690", address:"55 Adyar River Rd", items:"Margherita, Lemonade", total:15.10}
+  };
+  const foundBugs = new Set();
+
+  // NOTE: staff discount left wired up from testing — remove before real launch
+  const STAFF_CODE = "STAFF-100OFF";
+
+  function addToCart(btn){
+    const card = btn.closest('.dish');
+    const name = card.querySelector('h4').textContent;
+    const price = parseFloat(card.dataset.price); // trusts whatever is in the DOM right now
+    const qty = parseInt(card.querySelector('.qty').value) || 1;
+    cart.push({name, price, qty});
+    renderCart();
+  }
+
+  function renderCart(){
+    const linesEl = document.getElementById('cart-lines');
+    if(cart.length === 0){
+      linesEl.innerHTML = '<p class="mono" style="color:var(--muted); font-size:13px;">Cart is empty.</p>';
+    } else {
+      linesEl.innerHTML = cart.map((line, i) => `
+        <div class="cart-line">
+          <span>${line.name}</span>
+          <span>
+            <input type="number" value="${line.qty}" onchange="updateQty(${i}, this.value)">
+            × $${line.price.toFixed(2)}
+          </span>
+        </div>`).join('');
+    }
+    computeTotal();
+  }
+
+  function updateQty(i, val){
+    cart[i].qty = parseFloat(val); // no floor at zero — negative quantities pass straight through
+    computeTotal();
+  }
+
+  let discountMultiplier = 1;
+  function computeTotal(){
+    let total = cart.reduce((sum, l) => sum + (l.price * l.qty), 0);
+    total *= discountMultiplier;
+    document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+  }
+
+  function applyPromo(){
+    const code = document.getElementById('promo-input').value.trim().toUpperCase();
+    const msg = document.getElementById('promo-msg');
+    if(code === STAFF_CODE){
+      discountMultiplier = 0;
+      msg.textContent = 'Staff discount applied — order is now $0.00.';
+    } else if(code === 'BASIL10'){
+      discountMultiplier = 0.9;
+      msg.textContent = '10% off applied.';
+    } else {
+      msg.textContent = 'Invalid code.';
+    }
+    computeTotal();
+  }
+
+  function trackOrder(){
+    const id = document.getElementById('track-input').value.trim();
+    const box = document.getElementById('order-result');
+    const order = orders[id];
+    if(!order){
+      box.classList.add('show');
+      box.innerHTML = '<span class="k">No order found for #' + id.replace(/</g,'&lt;') + '</span>';
+      return;
+    }
+    box.classList.add('show');
+    box.innerHTML = `
+      <div class="k">Order #${id}</div>
+      <div style="margin-bottom:10px; font-family:'Fraunces',serif; font-size:17px;">${order.name}</div>
+      <div class="k">Phone</div><div style="margin-bottom:8px;">${order.phone}</div>
+      <div class="k">Delivery address</div><div style="margin-bottom:8px;">${order.address}</div>
+      <div class="k">Items</div><div style="margin-bottom:8px;">${order.items}</div>
+      <div class="k">Total</div><div>$${order.total.toFixed(2)}</div>
+    `;
+  }
+
+  function doLogin(){
+    const u = document.getElementById('login-user').value;
+    const p = document.getElementById('login-pass').value;
+    const msg = document.getElementById('login-msg');
+    if(u === 'sam' && p === 'pizza123'){
+      msg.textContent = 'Welcome back, Sam.';
+      msg.style.color = 'var(--gold-bright)';
+    } else {
+      msg.textContent = 'Incorrect username or password.';
+      msg.style.color = 'var(--chili-bright)';
+    }
+  }
+
+  function revealAdmin(){
+    document.getElementById('admin').style.display = 'block';
+    document.getElementById('admin').scrollIntoView({behavior:'smooth'});
+  }
+
+  const menuItems = [
+    {name:"Wood-Fired Margherita", price:12.50, hidden:false},
+    {name:"Garlic Knots (6)", price:9.00, hidden:false},
+    {name:"Bolt Bowl", price:14.75, hidden:false},
+    {name:"Basil Lemonade", price:6.50, hidden:false},
+    {name:"Chef's Off-Menu Special (86'd)", price:28.00, hidden:true}
+  ];
+  function runSearch(){
+    const q = document.getElementById('search-input').value;
+    const results = document.getElementById('search-results');
+    const bypass = /'\s*or\s*'?1'?\s*=\s*'?1/i.test(q);
+    let list;
+    if(bypass){
+      list = menuItems; // filter logic collapses entirely on a tautology-style string
+    } else {
+      const term = q.toLowerCase();
+      list = menuItems.filter(m => !m.hidden && m.name.toLowerCase().includes(term));
+    }
+    results.innerHTML = list.map(m => `
+      <div class="item ${m.hidden ? 'hidden-item' : ''}">
+        <span>${m.name.replace(/</g,'&lt;')}</span>
+        <span>${m.hidden ? '<span class="tag">FILTER BYPASSED</span> ' : ''}$${m.price.toFixed(2)}</span>
+      </div>`).join('') || '<div class="item">No dishes matched.</div>';
+  }
+
+  const seededReviews = [
+    {who:"Priya N.", text:"Margherita was perfect, extra basil please next time!"},
+    {who:"Marcus T.", text:"Fast delivery, garlic knots didn't survive the ride home."}
+  ];
+  const reviews = [...seededReviews];
+  function renderReviews(){
+    document.getElementById('review-list').innerHTML = reviews.map(r =>
+      `<div class="review"><div class="who">${r.who}</div><div>${r.text}</div></div>`
+    ).join('');
+  }
+  function postReview(){
+    const input = document.getElementById('review-input');
+    const text = input.value;
+    if(!text.trim()) return;
+    reviews.unshift({who:'Guest', text: text}); // rendered as-is, no escaping — intentional
+    input.value = '';
+    renderReviews();
+  }
+
+  function toggleTicket(el){
+    el.classList.toggle('expanded');
+    if(!el.classList.contains('found')){
+      el.classList.add('found');
+      el.querySelector('.status').textContent = 'found ✓';
+      foundBugs.add(el.dataset.cat);
+      document.getElementById('progress-strip').textContent = foundBugs.size + ' / 7 bugs found';
+    }
+  }
+
+  renderCart();
+  renderReviews();
+</script>
+
+</body>
+</html>
